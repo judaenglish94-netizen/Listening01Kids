@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JM English Listening Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --space-dark: #050b14;
+      --space-blue: #0b192e;
+      --accent-red: #d90429;
+      --accent-blue: #0077b6;
+      --card-bg: rgba(13, 27, 42, 0.92);
+      --card-border: rgba(255, 255, 255, 0.85);
+      --text-main: #f8f9fa;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
+
+    body {
+      background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+      min-height: 100vh;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Efeito de Estrelas no Fundo */
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: 
+        radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0)),
+        radial-gradient(1.5px 1.5px at 230px 190px, #ffffff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 300px 80px, #ffffff, rgba(0,0,0,0));
+      background-repeat: repeat;
+      background-size: 350px 350px;
+      opacity: 0.5;
+      z-index: 0;
+    }
+
+    /* Container do Topo com a Logo Chamando judalogo.png */
+    .brand-header {
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+
+    .custom-logo {
+      max-width: 180px;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 6px 15px rgba(0,0,0,0.6));
+      transition: transform 0.3s ease;
+    }
+
+    .custom-logo:hover {
+      transform: scale(1.03);
+    }
+
+    /* Side Navigation Drawer */
+    .drawer {
+      position: fixed;
+      top: 0;
+      left: -320px;
+      width: 300px;
+      height: 100%;
+      background: #0f172a;
+      box-shadow: 5px 0 25px rgba(0,0,0,0.8);
+      z-index: 1000;
+      transition: left 0.3s ease;
+      padding: 25px 20px;
+      overflow-y: auto;
+      border-right: 2px solid rgba(255,255,255,0.2);
+    }
+    .drawer.open { left: 0; }
+    .drawer-overlay {
+      position: fixed;
+      top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 999;
+      display: none;
+    }
+    .drawer-overlay.open { display: block; }
+
+    .grid-menu {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .grid-item {
+      padding: 12px;
+      background: #1e293b;
+      color: #38bdf8;
+      font-weight: 700;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: all 0.2s;
+    }
+    .grid-item:hover { border-color: #38bdf8; background: #334155; }
+    .grid-item.answered { background: #14532d; color: #4ade80; border-color: #22c55e; }
+
+    .container {
+      width: 100%;
+      max-width: 750px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      border: 3px solid var(--card-border);
+      position: relative;
+      z-index: 1;
+      backdrop-filter: blur(10px);
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .menu-btn {
+      background: #1e293b;
+      border: 2px solid #ffffff;
+      color: #ffffff;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .menu-btn:hover { background: #334155; transform: translateY(-1px); }
+
+    h1, h2, h3 { font-family: 'Fredoka', sans-serif; color: #ffffff; text-align: center; }
+
+    .audio-player-box {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 14px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .audio-player-box p {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }
+    audio {
+      width: 100%;
+      outline: none;
+      height: 40px;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      border: 2px solid #ffffff;
+      padding: 12px 30px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-block;
+      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+    }
+    .btn:hover { background: linear-gradient(135deg, #0369a1 0%, #075985 100%); transform: translateY(-2px); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .options-grid { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
+
+    .option-btn {
+      background: rgba(30, 41, 59, 0.7);
+      border: 2px solid #334155;
+      padding: 14px 20px;
+      border-radius: 14px;
+      text-align: left;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #f8f9fa;
+    }
+    .option-btn:hover { border-color: #38bdf8; background: rgba(51, 65, 85, 0.9); }
+    .option-btn.selected { border-color: #38bdf8; background: #0284c7; color: #ffffff; }
+    .option-btn.correct { background: #14532d !important; border-color: #22c55e !important; color: #ffffff !important; }
+    .option-btn.wrong { background: #7f1d1d !important; border-color: #ef4444 !important; color: #ffffff !important; }
+
+    .feedback-box {
+      margin-top: 15px;
+      padding: 16px;
+      border-radius: 14px;
+      font-weight: 600;
+      display: none;
+      line-height: 1.6;
+    }
+
+    .nav-actions { display: flex; justify-content: space-between; margin-top: 25px; }
+
+    .progress-bar-wrap {
+      width: 100%;
+      background: #1e293b;
+      height: 10px;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      border: 1px solid #334155;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #0284c7);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header com a logo judalogo.png centralizada -->
+<div class="brand-header">
+  <img src="judalogo.png" alt="JM Logo" class="custom-logo">
+</div>
+
+<!-- Side Navigation Drawer -->
+<div class="drawer-overlay" id="overlay" onclick="toggleMenu()"></div>
+<div class="drawer" id="drawer">
+  <h3>Questions Menu</h3>
+  <p style="font-size: 0.9rem; text-align: center; margin-top: 5px; color: var(--text-muted);">Select a question to jump:</p>
+  <div class="grid-menu" id="menu-grid"></div>
+</div>
+
+<div class="container">
+  <div class="top-bar">
+    <button class="menu-btn" onclick="toggleMenu()">☰ Menu</button>
+    <span style="font-weight: 800; color: #38bdf8;" id="tracker-text">Listening Quiz</span>
+  </div>
+
+  <!-- START SCREEN -->
+  <div id="start-screen">
+    <h1 style="font-size: 1.8rem; margin-bottom: 10px;">English Listening Practice</h1>
+    <p style="text-align: center; margin: 15px 0; font-size: 1.05rem; line-height: 1.5; color: var(--text-muted);">
+      Listen to the audio track and answer the 20 easy questions about family and jobs!
+    </p>
+
+    <div class="audio-player-box">
+      <p>Audio Track (videoplayback.mp4)</p>
+      <audio controls id="main-audio">
+        <source src="videoplayback.mp4" type="audio/mp4">
+        Your browser does not support the audio element.
+      </audio>
+    </div>
+
+    <div style="text-align: center; margin-top: 25px;">
+      <button class="btn" onclick="startQuiz()">Start Quiz</button>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quiz-screen" style="display: none;">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div class="audio-player-box" style="margin: 0 0 15px 0; padding: 10px;">
+      <audio controls>
+        <source src="videoplayback.mp4" type="audio/mp4">
+      </audio>
+    </div>
+
+    <h2 id="question-number">Question 1</h2>
+    <p id="question-text" style="font-size: 1.2rem; margin: 15px 0; font-weight: 700; text-align: center; color: #f8f9fa;"></p>
+
+    <div class="options-grid" id="options-container"></div>
+
+    <div style="text-align: center; margin-top: 15px;">
+      <button class="btn" id="check-btn" onclick="checkAnswer()">Check</button>
+    </div>
+
+    <div class="feedback-box" id="feedback-box"></div>
+
+    <div class="nav-actions">
+      <button class="btn" id="prev-btn" style="background: #334155; border-color: #64748b;" onclick="prevQuestion()">Previous</button>
+      <button class="btn" id="next-btn" style="background: #334155; border-color: #64748b;" onclick="nextQuestion()">Next</button>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="result-screen" style="display: none; text-align: center;">
+    <h2 style="font-size: 2rem; color: #38bdf8;">Quiz Completed!</h2>
+    <p style="font-size: 1.3rem; margin: 20px 0;" id="score-text"></p>
+    <div style="margin-top: 25px;">
+      <button class="btn" onclick="restartQuiz()">Restart Quiz</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const questions = [
+    // Conversation 1
+    {
+      q: "In Conversation 1, who is the man in the photo?",
+      options: ["Her brother", "Her dad", "Her son", "Her grandpa"],
+      correct: 1, // B
+      explain: "Trecho do áudio: <strong>'That is my dad'</strong>.<br>Tradução: <em>'Aquele é meu pai'</em>.<br>Explicação: A mulher fala sobre o homem na foto dizendo que ele é o pai dela (<strong>dad</strong>)."
+    },
+    {
+      q: "What is her dad's job? He is a...",
+      options: ["Doctor", "Teacher", "Pilot", "Farmer"],
+      correct: 0, // A
+      explain: "Trecho do áudio: <strong>'He is a doctor'</strong>.<br>Tradução: <em>'Ele é um médico'</em>.<br>Explicação: A palavra <strong>doctor</strong> significa médico."
+    },
+    {
+      q: "Is her dad short or tall?",
+      options: ["He is very short", "He is small", "He is very tall", "He is fat"],
+      correct: 2, // C
+      explain: "Trecho do áudio: <strong>'He is very tall'</strong>.<br>Tradução: <em>'Ele é muito alto'</em>.<br>Explicação: O adjetivo <strong>tall</strong> significa alto."
+    },
+    {
+      q: "Who is also a doctor in Conversation 1?",
+      options: ["Her sister", "Her daughter", "Her grandma", "Her mom"],
+      correct: 3, // D
+      explain: "Trecho do áudio: <strong>'Is this your mom? Yes, she is a doctor too'</strong>.<br>Tradução: <em>'Esta é sua mãe? Sim, ela também é médica'</em>.<br>Explicação: A mãe (<strong>mom</strong>) dela também é médica."
+    },
+    {
+      q: "Which word describes the mom and dad in Conversation 1?",
+      options: ["A smart family", "A sad family", "A small family", "A big family"],
+      correct: 0, // A
+      explain: "Trecho do áudio: <strong>'Smart family'</strong>.<br>Tradução: <em>'Família inteligente'</em>.<br>Explicação: O adjetivo <strong>smart</strong> significa inteligente."
+    },
+
+    // Conversation 2
+    {
+      q: "In Conversation 2, who is the man at work?",
+      options: ["Her dad", "Her brother", "Her husband", "Her grandfather"],
+      correct: 2, // C
+      explain: "Trecho do áudio: <strong>'That is my husband'</strong>.<br>Tradução: <em>'Aquele é meu marido'</em>.<br>Explicação: A palavra <strong>husband</strong> significa marido."
+    },
+    {
+      q: "What is her husband's job? He is a...",
+      options: ["Teacher", "Fireman", "Doctor", "Pilot"],
+      correct: 1, // B
+      explain: "Trecho do áudio: <strong>'Is he a fireman? Yes, he is'</strong>.<br>Tradução: <em>'Ele é um bombeiro? Sim, ele é'</em>.<br>Explicação: A palavra <strong>fireman</strong> significa bombeiro."
+    },
+    {
+      q: "Who is the girl in Conversation 2?",
+      options: ["Her daughter", "Her sister", "Her mother", "Her grandma"],
+      correct: 0, // A
+      explain: "Trecho do áudio: <strong>'This is my daughter'</strong>.<br>Tradução: <em>'Esta é minha filha'</em>.<br>Explicação: A palavra <strong>daughter</strong> significa filha."
+    },
+    {
+      q: "How is her daughter? She is so...",
+      options: ["Tall", "Old", "Sad", "Cute"],
+      correct: 3, // D
+      explain: "Trecho do áudio: <strong>'She is so cute'</strong>.<br>Tradução: <em>'Ela é tão fofa'</em>.<br>Explicação: O adjetivo <strong>cute</strong> significa fofa/bonitinha."
+    },
+    {
+      q: "Where is her husband in the picture?",
+      options: ["At home", "At school", "At work", "At the park"],
+      correct: 2, // C
+      explain: "Trecho do áudio: <strong>'He is at work'</strong>.<br>Tradução: <em>'Ele está no trabalho'</em>.<br>Explicação: A expressão <strong>at work</strong> significa no trabalho."
+    },
+
+    // Conversation 3
+    {
+      q: "In Conversation 3, who is the woman's sister?",
+      options: ["A doctor", "A pilot", "A fireman", "A teacher"],
+      correct: 1, // B
+      explain: "Trecho do áudio: <strong>'My sister is a pilot'</strong>.<br>Tradução: <em>'Minha irmã é uma piloto'</em>.<br>Explicação: A profissão da irmã (<strong>sister</strong>) é piloto."
+    },
+    {
+      q: "What is her brother's job? He is a...",
+      options: ["Doctor", "Fireman", "Farmer", "Pilot"],
+      correct: 2, // C
+      explain: "Trecho do áudio: <strong>'My brother is a farmer'</strong>.<br>Tradução: <em>'Meu irmão é um fazendeiro'</em>.<br>Explicação: A profissão do irmão (<strong>brother</strong>) é fazendeiro."
+    },
+    {
+      q: "Is her brother older or younger?",
+      options: ["Older brother", "Younger brother", "Baby brother", "Little brother"],
+      correct: 0, // A
+      explain: "Trecho do áudio: <strong>'My older brother'</strong>.<br>Tradução: <em>'Meu irmão mais velho'</em>.<br>Explicação: A palavra <strong>older</strong> indica que ele é mais velho."
+    },
+    {
+      q: "Is her sister older or younger?",
+      options: ["Older sister", "Big sister", "Tall sister", "Younger sister"],
+      correct: 3, // D
+      explain: "Trecho do áudio: <strong>'Younger sister'</strong>.<br>Tradução: <em>'Irmã mais nova'</em>.<br>Explicação: A palavra <strong>younger</strong> indica que ela é mais nova."
+    },
+    {
+      q: "What adjective is used for their jobs?",
+      options: ["Bad jobs", "Cool jobs", "Hard jobs", "Old jobs"],
+      correct: 1, // B
+      explain: "Trecho do áudio: <strong>'They have cool jobs'</strong>.<br>Tradução: <em>'Eles têm empregos legais'</em>.<br>Explicação: O adjetivo <strong>cool</strong> significa legal."
+    },
+
+    // Conversation 4
+    {
+      q: "In Conversation 4, who are the old people in the picture?",
+      options: ["Her grandparents", "Her parents", "Her brothers", "Her friends"],
+      correct: 0, // A
+      explain: "Trecho do áudio: <strong>'Those are my grandparents'</strong>.<br>Tradução: <em>'Aqueles são meus avós'</em>.<br>Explicação: A palavra <strong>grandparents</strong> significa avós."
+    },
+    {
+      q: "Do her grandparents live in town or in the country?",
+      options: ["In town", "In a school", "In the country", "In a hospital"],
+      correct: 2, // C
+      explain: "Trecho do áudio: <strong>'They live in the country'</strong>.<br>Tradução: <em>'Eles moram no campo'</em>.<br>Explicação: A expressão <strong>in the country</strong> significa no campo/interior."
+    },
+    {
+      q: "What place do her grandparents have?",
+      options: ["A shop", "A farm", "A school", "A bank"],
+      correct: 1, // B
+      explain: "Trecho do áudio: <strong>'They have a farm'</strong>.<br>Tradução: <em>'Eles têm uma fazenda'</em>.<br>Explicação: A palavra <strong>farm</strong> significa fazenda."
+    },
+    {
+      q: "Does the woman visit her grandparents often?",
+      options: ["No, she never goes", "She goes once", "No, she hates it", "Yes, she goes there often"],
+      correct: 3, // D
+      explain: "Trecho do áudio: <strong>'I go there often'</strong>.<br>Tradução: <em>'Eu vou lá frequentemente'</em>.<br>Explicação: A palavra <strong>often</strong> significa frequentemente."
+    },
+    {
+      q: "Which pronoun refers to a MAN in the conversations?",
+      options: ["He", "She", "They", "It"],
+      correct: 0, // A
+      explain: "Explicação Gramatical: Usamos o pronome <strong>He</strong> para ele (homem) e <strong>She</strong> para ela (mulher)."
+    }
+  ];
+
+  let currentQ = 0;
+  let userAnswers = new Array(questions.length).fill(null);
+
+  function toggleMenu() {
+    document.getElementById('drawer').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('open');
+  }
+
+  function renderMenu() {
+    const grid = document.getElementById('menu-grid');
+    grid.innerHTML = '';
+    questions.forEach((_, idx) => {
+      const item = document.createElement('div');
+      item.className = 'grid-item' + (userAnswers[idx] !== null ? ' answered' : '');
+      item.innerText = idx + 1;
+      item.onclick = () => {
+        currentQ = idx;
+        loadQuestion();
+        toggleMenu();
+      };
+      grid.appendChild(item);
+    });
+  }
+
+  function startQuiz() {
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('quiz-screen').style.display = 'block';
+    renderMenu();
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    const q = questions[currentQ];
+    document.getElementById('question-number').innerText = `Question ${currentQ + 1} of ${questions.length}`;
+    document.getElementById('question-text').innerText = q.q;
+    document.getElementById('tracker-text').innerText = `Q${currentQ + 1} / 20`;
+    
+    const pct = ((currentQ + 1) / questions.length) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+
+    const container = document.getElementById('options-container');
+    container.innerHTML = '';
+    
+    const feedbackBox = document.getElementById('feedback-box');
+    feedbackBox.style.display = 'none';
+
+    document.getElementById('check-btn').disabled = false;
+    document.getElementById('prev-btn').disabled = currentQ === 0;
+
+    q.options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.innerText = opt;
+      if (userAnswers[currentQ] === idx) {
+        btn.classList.add('selected');
+      }
+      btn.onclick = () => selectOption(idx);
+      container.appendChild(btn);
+    });
+
+    if (userAnswers[currentQ] !== null) {
+      showAnswerState();
+    }
+  }
+
+  function selectOption(idx) {
+    userAnswers[currentQ] = idx;
+    renderMenu();
+    const btns = document.querySelectorAll('.option-btn');
+    btns.forEach((b, i) => {
+      b.classList.toggle('selected', i === idx);
+    });
+  }
+
+  function checkAnswer() {
+    if (userAnswers[currentQ] === null) return;
+    showAnswerState();
+  }
+
+  function showAnswerState() {
+    const q = questions[currentQ];
+    const selected = userAnswers[currentQ];
+    const btns = document.querySelectorAll('.option-btn');
+    const feedbackBox = document.getElementById('feedback-box');
+
+    btns.forEach((btn, idx) => {
+      btn.onclick = null;
+      if (idx === q.correct) {
+        btn.classList.add('correct');
+      } else if (idx === selected) {
+        btn.classList.add('wrong');
+      }
+    });
+
+    if (selected === q.correct) {
+      feedbackBox.style.background = '#14532d';
+      feedbackBox.style.color = '#ffffff';
+      feedbackBox.innerHTML = '✔ <strong>Correto!</strong><br><br>' + q.explain;
+      confetti({ particleCount: 35, spread: 50, origin: { y: 0.7 } });
+    } else {
+      feedbackBox.style.background = '#7f1d1d';
+      feedbackBox.style.color = '#ffffff';
+      feedbackBox.innerHTML = '✖ <strong>Incorreto.</strong><br><br>' + q.explain;
+    }
+
+    feedbackBox.style.display = 'block';
+    document.getElementById('check-btn').disabled = true;
+  }
+
+  function nextQuestion() {
+    if (currentQ < questions.length - 1) {
+      currentQ++;
+      loadQuestion();
+    } else {
+      finishQuiz();
+    }
+  }
+
+  function prevQuestion() {
+    if (currentQ > 0) {
+      currentQ--;
+      loadQuestion();
+    }
+  }
+
+  function finishQuiz() {
+    document.getElementById('quiz-screen').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'block';
+    
+    let score = 0;
+    questions.forEach((q, idx) => {
+      if (userAnswers[idx] === q.correct) score++;
+    });
+
+    document.getElementById('score-text').innerHTML = `You scored <strong>${score}</strong> out of <strong>${questions.length}</strong>!`;
+    confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+  }
+
+  function restartQuiz() {
+    userAnswers.fill(null);
+    currentQ = 0;
+    document.getElementById('result-screen').style.display = 'none';
+    document.getElementById('start-screen').style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
